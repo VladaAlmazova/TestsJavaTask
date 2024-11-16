@@ -4,8 +4,6 @@ import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 
-import java.util.Spliterators;
-
 /**
  * Тестирование класса логики заметок
  */
@@ -17,7 +15,7 @@ class NoteLogicTest {
      * Инициализация класса логики заметок
      */
     @BeforeEach
-    void initNoteLogic(){
+    void initNoteLogic() {
         noteLogic = new NoteLogic();
     }
 
@@ -26,10 +24,12 @@ class NoteLogicTest {
      * и печати заметок пользователя
      */
     @Test
-    void addAndPrintNoteTest(){
+    void addAndPrintNoteTest() {
         String replyMessage = noteLogic.handleMessage("/add nameNote");
         Assertions.assertEquals(
-                "Your notes:"+"\n"+"nameNote",
+                """
+                        Your notes:
+                        nameNote""",
                 noteLogic.handleMessage("/notes"));
         Assertions.assertEquals("Note added!", replyMessage);
     }
@@ -38,11 +38,13 @@ class NoteLogicTest {
      * Тестирование команды изменения названия заметки
      */
     @Test
-    void editNoteTest(){
+    void editNoteTest() {
         noteLogic.handleMessage("/add oldNameNote");
         String replyMessage = noteLogic.handleMessage("/edit oldNameNote newNameNote");
         Assertions.assertEquals(
-                "Your notes:"+"\n"+"newNameNote",
+                """
+                        Your notes:
+                        newNameNote""",
                 noteLogic.handleMessage("/notes"));
         Assertions.assertEquals("Note edited!", replyMessage);
     }
@@ -51,7 +53,7 @@ class NoteLogicTest {
      * Тестирование команды удаления заметки
      */
     @Test
-    void delNoteTest(){
+    void delNoteTest() {
         noteLogic.handleMessage("/add delNameNote");
         String pastNotes = noteLogic.handleMessage("/notes");
         String replyMessage = noteLogic.handleMessage("/del delNameNote");
