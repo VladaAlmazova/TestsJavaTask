@@ -26,13 +26,6 @@ class BotLogicTest {
     private BotLogic botLogic;
 
     /**
-     * Возвращает последнее сообщение "отправленное" пользователю
-     */
-    private String lastMessageSent() {
-        return fakeBot.getMessages().getLast();
-    }
-
-    /**
      * Начальное определение полей
      */
     @BeforeEach
@@ -49,47 +42,46 @@ class BotLogicTest {
     void testCommandTestCorrectAnswers() {
         botLogic.processCommand(user, "/test");
 
-        Assertions.assertEquals("Вычислите степень: 10^2", lastMessageSent());
+        Assertions.assertEquals("Вычислите степень: 10^2", fakeBot.lastMessageSent());
 
         botLogic.processCommand(user, "100");
 
         Assertions.assertEquals("Правильный ответ!", fakeBot.getMessages().get(1));
-        Assertions.assertEquals("Сколько будет 2 + 2 * 2", lastMessageSent());
+        Assertions.assertEquals("Сколько будет 2 + 2 * 2", fakeBot.lastMessageSent());
+        botLogic.processCommand(user, "6");
+        Assertions.assertEquals("Тест завершен", fakeBot.lastMessageSent());
     }
 
     /**
      * Тест для команды тестирования.
-     * Если пользователь дает неправильный ответ
+     * с неправильным ответом
      */
     @Test
     void testCommandTestUnCorrectAnswers() {
         botLogic.processCommand(user, "/test");
+        Assertions.assertEquals("Вычислите степень: 10^2", fakeBot.lastMessageSent());
         botLogic.processCommand(user, "10");
 
         Assertions.assertEquals("Вы ошиблись, верный ответ: 100", fakeBot.getMessages().get(1));
-        Assertions.assertEquals("Сколько будет 2 + 2 * 2", lastMessageSent());
+        Assertions.assertEquals("Сколько будет 2 + 2 * 2", fakeBot.lastMessageSent());
     }
 
     /**
-     * Тест для команды тестирования.
-     * Пройдены все вопросы
+     * Проверяет, что в повторение попадают только вопросы,
+     * на которые пользователь ответил неверно
      */
     @Test
-    void testCommandTestEndTest() {
+    void testRepeatCorrectCompilation() {
         botLogic.processCommand(user, "/test");
-        botLogic.processCommand(user, "10");
-        botLogic.processCommand(user, "6");
+        if (fakeBot.lastMessageSent().equals("Вычислите степень: 10^2"))
+            botLogic.processCommand(user, "100");
+        if (fakeBot.lastMessageSent().equals("Сколько будет 2 + 2 * 2"))
+            botLogic.processCommand(user, "10");
 
-        Assertions.assertEquals("Тест завершен", lastMessageSent());
-    }
-
-    /**
-     * Имитирует неправильные ответы на вопросы в тесте
-     */
-    void userAnswersIncorrectlyInTest() {
-        botLogic.processCommand(user, "/test");
+        botLogic.processCommand(user, "/repeat");
+        Assertions.assertEquals("Сколько будет 2 + 2 * 2", fakeBot.lastMessageSent());
         botLogic.processCommand(user, "10");
-        botLogic.processCommand(user, "10");
+        Assertions.assertEquals("Тест завершен", fakeBot.lastMessageSent());
     }
 
     /**
@@ -98,19 +90,21 @@ class BotLogicTest {
      */
     @Test
     void testRepeatCorrectAnswers() {
-        userAnswersIncorrectlyInTest();
+        botLogic.processCommand(user, "/test");
+        if (fakeBot.lastMessageSent().equals("Вычислите степень: 10^2"))
+            botLogic.processCommand(user, "10");
+        if (fakeBot.lastMessageSent().equals("Сколько будет 2 + 2 * 2"))
+            botLogic.processCommand(user, "10");
 
         botLogic.processCommand(user, "/repeat");
-        Assertions.assertEquals("Вычислите степень: 10^2", lastMessageSent());
+        Assertions.assertEquals("Вычислите степень: 10^2", fakeBot.lastMessageSent());
         botLogic.processCommand(user, "100");
 
         Assertions.assertEquals("Правильный ответ!",
                 fakeBot.getMessages().get(fakeBot.getMessages().size() - 2));
 
-        botLogic.processCommand(user, "/stop");
-
         botLogic.processCommand(user, "/repeat");
-        Assertions.assertEquals("Сколько будет 2 + 2 * 2", lastMessageSent());
+        Assertions.assertEquals("Сколько будет 2 + 2 * 2", fakeBot.lastMessageSent());
     }
 
     /**
@@ -119,35 +113,29 @@ class BotLogicTest {
      */
     @Test
     void testRepeatUnCorrectAnswers() {
-        userAnswersIncorrectlyInTest();
+        botLogic.processCommand(user, "/test");
+        if (fakeBot.lastMessageSent().equals("Вычислите степень: 10^2"))
+            botLogic.processCommand(user, "10");
 
         botLogic.processCommand(user, "/repeat");
-        botLogic.processCommand(user, "10");
+        if (fakeBot.lastMessageSent().equals("Вычислите степень: 10^2"))
+            botLogic.processCommand(user, "10");
 
         Assertions.assertEquals("Вы ошиблись, верный ответ: 100",
                 fakeBot.getMessages().get(fakeBot.getMessages().size() - 2));
 
-        botLogic.processCommand(user, "/stop");
-
         botLogic.processCommand(user, "/repeat");
-        Assertions.assertEquals("Вычислите степень: 10^2", lastMessageSent());
+        Assertions.assertEquals("Вычислите степень: 10^2", fakeBot.lastMessageSent());
     }
 
     /**
      * Тест для команды повторения.
-     * Пройдены все вопросы
+     * Нет вопросов
      */
     @Test
-    void testRepeatEndRepeat() {
+    void testRepeatNoRepeat() {
         botLogic.processCommand(user, "/repeat");
-        Assertions.assertEquals("Нет вопросов для повторения", lastMessageSent());
-
-        userAnswersIncorrectlyInTest();
-        botLogic.processCommand(user, "/repeat");
-        botLogic.processCommand(user, "100");
-        botLogic.processCommand(user, "6");
-
-        Assertions.assertEquals("Тест завершен", lastMessageSent());
+        Assertions.assertEquals("Нет вопросов для повторения", fakeBot.lastMessageSent());
     }
 
 
@@ -162,13 +150,13 @@ class BotLogicTest {
         botLogic.processCommand(user, "напоминание");
         botLogic.processCommand(user, "3.5");
 
-        Assertions.assertEquals("Пожалуйста, введите целое число", lastMessageSent());
+        Assertions.assertEquals("Пожалуйста, введите целое число", fakeBot.lastMessageSent());
 
         botLogic.processCommand(user, "1");
-        Assertions.assertEquals("Напоминание установлено", lastMessageSent());
+        Assertions.assertEquals("Напоминание установлено", fakeBot.lastMessageSent());
         Assertions.assertEquals(4, fakeBot.getMessages().size());
         Thread.sleep(1020);
-        Assertions.assertEquals("Сработало напоминание: 'напоминание'", lastMessageSent());
+        Assertions.assertEquals("Сработало напоминание: 'напоминание'", fakeBot.lastMessageSent());
     }
 
     /**
@@ -186,10 +174,10 @@ class BotLogicTest {
         botLogic.processCommand(user, "1");
 
         Thread.sleep(1020);
-        Assertions.assertEquals("Сработало напоминание: 'быстрое'", lastMessageSent());
+        Assertions.assertEquals("Сработало напоминание: 'быстрое'", fakeBot.lastMessageSent());
 
         Thread.sleep(3020);
-        Assertions.assertEquals("Сработало напоминание: 'долгое'", lastMessageSent());
+        Assertions.assertEquals("Сработало напоминание: 'долгое'", fakeBot.lastMessageSent());
     }
 
 }

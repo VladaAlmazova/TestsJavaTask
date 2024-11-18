@@ -19,6 +19,13 @@ class FakeBot implements Bot {
         return messages;
     }
 
+    /**
+     * Возвращает последнее сообщение "отправленное" пользователю
+     */
+    public String lastMessageSent() {
+        return messages.getLast();
+    }
+
     @Override
     public void sendMessage(Long chatId, String message) {
         messages.add(message);

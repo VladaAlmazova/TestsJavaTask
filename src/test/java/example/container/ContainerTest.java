@@ -9,7 +9,7 @@ import org.junit.jupiter.api.Test;
  */
 class ContainerTest {
 
-    Container testContainer;
+    private Container testContainer;
 
     /**
      * Инициализация тестового контейнера
